@@ -43,8 +43,7 @@ const palindromeCounter = (text, minLength) => {
     }
     //turning the text into an array
     let temporalText = text.toLowerCase();
-    temporalText = temporalText.split(".").join();
-    temporalText = temporalText.split(",").join("");
+    temporalText = temporalText.replace(/[.,\,]/g,"");
     let wordsArr=temporalText.split(" ");
     let palindromeCount = 0;
     for(let word of wordsArr){
