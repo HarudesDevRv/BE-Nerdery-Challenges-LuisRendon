@@ -2,12 +2,30 @@ import fs from 'fs/promises';
 
 const wishlistPath = 'wishlist.json';
 
-function validateItem(item){//Validate the Item object structure
+/**
+ * @typedef {Object} Item
+ * @property {number} id - The autoincremental identifier for the item.
+ * @property {string} name - The name of the item.
+ * @property {number} price - The price of the item.
+ * @property {string} store - The store of the item.
+ */
+
+/**
+ * Validates the item object structure
+ * @param {Item} item 
+ * The item to be validated
+ */
+function validateItem(item){
     return Object.hasOwn(item,"name") && typeof(item.name) == "string" &&
      Object.hasOwn(item,"price") && typeof(item.price) == "number" && 
      Object.hasOwn(item,"store") && typeof(item.store) == "string";
 }
 
+/**
+ * Creates a new item on the wishlist
+ * @param {Item} item 
+ * The item to be created on the wishlist
+ */
 export function createWishlistItem(item){
     if(!validateItem(item)){//Show an alert when the item data is not valid
         console.log("Please enter a valid item");
@@ -27,6 +45,9 @@ export function createWishlistItem(item){
     });
 }
 
+/**
+ * Reads the wishlist and prints it on the console
+ */
 export function readWishlist(){
     fs.readFile(wishlistPath, { encoding: 'utf8' }).then(data=>{
         let wishlist = JSON.parse(data);//Get and show the wishlist
@@ -42,6 +63,11 @@ export function readWishlist(){
     });
 }
 
+/**
+ * Removes an item from the wishlist if found
+ * @param {number} id 
+ * The ID of the item to be removed
+ */
 export function removeWishlistItem(id){
     fs.readFile(wishlistPath,{encoding:'utf8'}).then(data=>{
         let wishlist = JSON.parse(data);//Get the wishlist and search for the item by ID
@@ -64,6 +90,14 @@ export function removeWishlistItem(id){
     });
 }
 
+/**
+ * Updates an item from the wishlist if found with the provided data
+ * @param {number} id 
+ * The ID of the item to be updated
+ * @param {Item} updatedItem 
+ * The new item data
+ * @returns 
+ */
 export function updateWishlistItem(id, updatedItem){
     if(!validateItem(updatedItem)){//Show an alert when the item data is not valid
         console.log("Please enter a valid item");
@@ -91,6 +125,9 @@ export function updateWishlistItem(id, updatedItem){
     });
 }
 
+/**
+ * Shows the summary of the wishlist: Most expensive item, total cost, number of items and average cost
+ */
 export function showWishlistSummary(){
     fs.readFile(wishlistPath, { encoding: 'utf8' }).then(data=>{
         let wishlist = JSON.parse(data);//Get the wishlist and set variables to keep necessary data
@@ -120,6 +157,9 @@ Average price:\t\t${(total/itemCount).toFixed(2)}`);
     });
 }
 
+/**
+ * Exports the wishlist as a CSV file and saves it locally
+ */
 export function exportAsCSV(){
     fs.readFile(wishlistPath, { encoding: 'utf8' }).then(data=>{
         let wishlist = JSON.parse(data);//Get the wishlist and set the CSV header

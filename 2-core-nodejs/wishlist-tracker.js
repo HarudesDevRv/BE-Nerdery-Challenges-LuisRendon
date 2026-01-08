@@ -18,7 +18,11 @@ Export as CSV:\t\t\t -e`;
 
 const args = process.argv;
 
-//Validate the arguments needed for the command to work
+/**
+ * Validate the arguments needed for a command to work from the process arguments
+ * @param {string[]} validationArray
+ * An array with the name of the arguments to be validated
+ */
 function validateArgs(validationArray){
     for(let validation of validationArray){
         let argumentIndex = args.indexOf(validation)
@@ -32,7 +36,9 @@ function validateArgs(validationArray){
 
 const getArgsValue = value => args[args.indexOf(value)+1];
 
-
+/**
+ * Interprets what command to execute
+ */
 function commandLineInterpreter(){
     if(process.argv.length<3){//Show the welcome message when no aditional arg is passed
         console.log(welcomeMessage);
