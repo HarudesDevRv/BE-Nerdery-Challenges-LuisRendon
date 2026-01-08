@@ -30,8 +30,12 @@ export function createWishlistItem(item){
 export function readWishlist(){
     fs.readFile(wishlistPath, { encoding: 'utf8' }).then(data=>{
         let wishlist = JSON.parse(data);
-        for(let item of wishlist.items){
-            console.log(`${item.id}\tName: ${item.name}\tPrice: ${item.price}\tStore: ${item.store}`);
+        if(wishlist.items.length){
+            for(let item of wishlist.items){
+                console.log(`${item.id}\tName: ${item.name}\tPrice: ${item.price.toFixed(2)}\tStore: ${item.store}`);
+            }
+        }else{
+            console.log("You have no items on your wishlist");
         }
     }).catch(err=>{
         console.log(err);
@@ -91,4 +95,42 @@ export function updateWishlistItem(id, updatedItem){
 
     });
     //console.log(wishlist);
+}
+
+export function showWishlistSummary(){
+    fs.readFile(wishlistPath, { encoding: 'utf8' }).then(data=>{
+        let wishlist = JSON.parse(data);
+        let total = 0;
+        let mostExpensiveItem = {};
+        let mostExpensivePrice= 0;
+        let itemCount = wishlist.items.length;
+        if(itemCount){
+            for(let item of wishlist.items){
+                total += item.price;
+                if(item.price > mostExpensivePrice){
+                    mostExpensivePrice = item.price;
+                    mostExpensiveItem = {...item};
+                }
+            }
+            console.log(
+`This is your summary:
+Most expensive item:\t${mostExpensiveItem.name}, ${mostExpensiveItem.price.toFixed(2)} at ${mostExpensiveItem.store}
+Total cost:\t\t${total.toFixed(2)}
+Number of items:\t${itemCount}
+Average price:\t\t${(total/itemCount).toFixed(2)}`);
+        }else{
+            console.log("You have no items on your wishlist");
+        }
+    }).catch(err=>{
+        console.log(err);
+    });
+}
+
+export function exportAsCSV(){
+    fs.readFile(wishlistPath, { encoding: 'utf8' }).then(data=>{
+        let wishlist = JSON.parse(data);
+        
+    }).catch(err=>{
+        console.log(err);
+    });
 }

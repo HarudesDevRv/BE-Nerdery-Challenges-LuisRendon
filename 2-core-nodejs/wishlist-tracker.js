@@ -1,7 +1,8 @@
 import {readWishlist,
     createWishlistItem,
     removeWishlistItem,
-    updateWishlistItem} from './crud-functions.mjs';
+    updateWishlistItem,
+    showWishlistSummary} from './crud-functions.mjs';
 import fs from 'fs/promises';
 
 const welcomeMessage =`Welcome to the Wishlist Tracker
@@ -9,7 +10,8 @@ Use the following commands to interact with your wishlist:
 See the items of your wishlist: -r
 Add a new item to your wishlist: -c --name <name> --price <price> --store <store>
 Update the item specified by id: -u --id <id> --name <name> --price <price> --store <store>
-Remove the item specified by id: -d --id <id>`;
+Remove the item specified by id: -d --id <id>
+Show wishlist summary: -s`;
 
 const args = process.argv;
 
@@ -64,6 +66,9 @@ function commandLineInterpreter(){
                 }else{
                     console.log("Please enter a valid command");
                 }
+                break;
+            case"-s":
+                showWishlistSummary();
                 break;
             default:
                 console.log("Please enter a valid command");
