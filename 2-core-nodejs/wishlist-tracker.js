@@ -6,6 +6,7 @@ import {readWishlist,
     exportAsCSV} from './crud-functions.mjs';
 import fs from 'fs/promises';
 
+//Message to show when no aditional value is passed
 const welcomeMessage =`Welcome to the Wishlist Tracker
 Use the following commands to interact with your wishlist:
 See the items of your wishlist:\t -r
@@ -17,9 +18,11 @@ Export as CSV:\t\t\t -e`;
 
 const args = process.argv;
 
+//Validate the arguments needed for the command to work
 function validateArgs(validationArray){
     for(let validation of validationArray){
         let argumentIndex = args.indexOf(validation)
+        //validate the argument name is specified and the next argument exists and is not another argument name
         if(argumentIndex <0 || argumentIndex == args.length-1 || args[argumentIndex+1].indexOf("-")>-1){
             return false;
         }
@@ -31,48 +34,47 @@ const getArgsValue = value => args[args.indexOf(value)+1];
 
 
 function commandLineInterpreter(){
-    if(process.argv.length<3){
+    if(process.argv.length<3){//Show the welcome message when no aditional arg is passed
         console.log(welcomeMessage);
     }
     else{
-        //console.log(process.argv);
         switch(args[2]){
-            case "-c":
+            case "-c": //Create a wishlist item
                 if(validateArgs(["--name","--store","--price"])){
                     createWishlistItem({
                         name:getArgsValue("--name"),
-                        price:parseInt(getArgsValue("--price")),
+                        price:parseFloat(getArgsValue("--price")),
                         store:getArgsValue("--store"),
                     });
                 }else{
                     console.log("Please enter a valid command");
                 }
                 break;
-            case "-r":
+            case "-r": //Read the wishlist items
                 readWishlist();
                 break;
-            case "-u":
+            case "-u": //Update a wishlist item
                 if(validateArgs(["--id","--name","--store","--price"])){
                     updateWishlistItem(parseInt(getArgsValue("--id")),{
                         name:getArgsValue("--name"),
-                        price:parseInt(getArgsValue("--price")),
+                        price:parseFloat(getArgsValue("--price")),
                         store:getArgsValue("--store"),
                     });
                 }else{
                     console.log("Please enter a valid command");
                 }
                 break;
-            case "-d":
+            case "-d": //Delete a wishlist item
                 if(validateArgs(["--id"])){
                     removeWishlistItem(getArgsValue("--id"));
                 }else{
                     console.log("Please enter a valid command");
                 }
                 break;
-            case "-s":
+            case "-s": //Show the wishlist summary
                 showWishlistSummary();
                 break;
-            case "-e":
+            case "-e": //Export the wishlist as CSV
                 exportAsCSV();
                 break;
             default:

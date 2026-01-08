@@ -9,29 +9,27 @@ function validateItem(item){//Validate the Item object structure
 }
 
 export function createWishlistItem(item){
-    if(!validateItem(item)){
+    if(!validateItem(item)){//Show an alert when the item data is not valid
         console.log("Please enter a valid item");
         return;
     }
     fs.readFile(wishlistPath, { encoding: 'utf8' }).then(data=>{
-        let wishlist = JSON.parse(data);
+        let wishlist = JSON.parse(data);//Get and update the wishlist
         wishlist.items.push({id:wishlist.autoincrement,...item,});
         wishlist.autoincrement++;
-        fs.writeFile(wishlistPath,JSON.stringify(wishlist)).then(()=>{
-            console.log("wishlist updated");
-            console.log(wishlist);
+        fs.writeFile(wishlistPath,JSON.stringify(wishlist)).then(()=>{//Save the updated wishlist
+            console.log("Wishlist updated");
         }).catch(err=>{
             console.log(err);
         });
     }).catch(err=>{
         console.log(err);
     });
-    console.log("finished creating");
 }
 
 export function readWishlist(){
     fs.readFile(wishlistPath, { encoding: 'utf8' }).then(data=>{
-        let wishlist = JSON.parse(data);
+        let wishlist = JSON.parse(data);//Get and show the wishlist
         if(wishlist.items.length){
             for(let item of wishlist.items){
                 console.log(`${item.id}\tName: ${item.name}\tPrice: ${item.price.toFixed(2)}\tStore: ${item.store}`);
@@ -46,15 +44,14 @@ export function readWishlist(){
 
 export function removeWishlistItem(id){
     fs.readFile(wishlistPath,{encoding:'utf8'}).then(data=>{
-        let wishlist = JSON.parse(data);
+        let wishlist = JSON.parse(data);//Get the wishlist and search for the item by ID
         let items = wishlist.items;
         let itemIndex = items.findIndex(item=>item.id==id);
-        if(itemIndex>=0){
+        if(itemIndex>=0){//If found, remove the item from the wishlist
             console.log("item found at index",itemIndex);
             items.splice(itemIndex,1);
-            fs.writeFile(wishlistPath,JSON.stringify(wishlist)).then(()=>{
+            fs.writeFile(wishlistPath,JSON.stringify(wishlist)).then(()=>{//Save the updatet wishlist
                 console.log("wishlist updated");
-                console.log(wishlist);
             }).catch(err=>{
                 console.log(err);
             });
@@ -62,28 +59,26 @@ export function removeWishlistItem(id){
         else{
             console.log("Item not found");
         }
-        console.log(wishlist);
     }).catch(err=>{
-
+        console.log(err);
     });
 }
 
 export function updateWishlistItem(id, updatedItem){
-    if(!validateItem(updatedItem)){
+    if(!validateItem(updatedItem)){//Show an alert when the item data is not valid
         console.log("Please enter a valid item");
         return;
     }
     fs.readFile(wishlistPath,{encoding:'utf8'}).then(data=>{
-        let wishlist = JSON.parse(data);
+        let wishlist = JSON.parse(data);//Get the wishlist and search for the item by ID
         let items = wishlist.items;
         let itemIndex = items.findIndex(item=>item.id==id);
         console.log(itemIndex);
-        if(itemIndex>=0){
+        if(itemIndex>=0){//If found, update the item
             console.log("item found at index",itemIndex);
             items[itemIndex]={id:id,...updatedItem};
-            fs.writeFile(wishlistPath,JSON.stringify(wishlist)).then(()=>{
+            fs.writeFile(wishlistPath,JSON.stringify(wishlist)).then(()=>{//Save the updated wishlist
                 console.log("wishlist updated");
-                console.log(wishlist);
             }).catch(err=>{
                 console.log(err);
             });
@@ -91,20 +86,19 @@ export function updateWishlistItem(id, updatedItem){
         else{
             console.log("Item not found");
         }
-        console.log(wishlist);
     }).catch(err=>{
-
+        console.log(err);
     });
 }
 
 export function showWishlistSummary(){
     fs.readFile(wishlistPath, { encoding: 'utf8' }).then(data=>{
-        let wishlist = JSON.parse(data);
+        let wishlist = JSON.parse(data);//Get the wishlist and set variables to keep necessary data
         let total = 0;
         let mostExpensiveItem = {};
         let mostExpensivePrice= 0;
         let itemCount = wishlist.items.length;
-        if(itemCount){
+        if(itemCount){//If there is at least one item, calculate the total price and most expensive item
             for(let item of wishlist.items){
                 total += item.price;
                 if(item.price > mostExpensivePrice){
@@ -112,7 +106,7 @@ export function showWishlistSummary(){
                     mostExpensiveItem = {...item};
                 }
             }
-            console.log(
+            console.log(//Calculate an show the summary
 `This is your summary:
 Most expensive item:\t${mostExpensiveItem.name}, ${mostExpensiveItem.price.toFixed(2)} at ${mostExpensiveItem.store}
 Total cost:\t\t${total.toFixed(2)}
@@ -128,13 +122,16 @@ Average price:\t\t${(total/itemCount).toFixed(2)}`);
 
 export function exportAsCSV(){
     fs.readFile(wishlistPath, { encoding: 'utf8' }).then(data=>{
-        let wishlist = JSON.parse(data);
+        let wishlist = JSON.parse(data);//Get the wishlist and set the CSV header
         let csv = "Item,Name,Price,Store";
-        for(let item of wishlist.items){
+        for(let item of wishlist.items){//Add each item data to the csv
             csv+='\n' + item.id.toString() + "," + item.name + "," + item.price.toString() + ","+item.store;
         }
-        fs.writeFile('wishlist.csv',csv);
-        
+        fs.writeFile('wishlist.csv',csv).then(()=>{//Locally save the CSV on the code folder
+            console.log("Wishlist successfully exported as CSV");
+        }).catch(err=>{
+            console.log(err);
+        });
     }).catch(err=>{
         console.log(err);
     });
