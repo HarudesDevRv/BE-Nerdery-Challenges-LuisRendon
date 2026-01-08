@@ -1,19 +1,19 @@
-import { exportAsCSV } from './crud-functions.mjs';
 import {readWishlist,
     createWishlistItem,
     removeWishlistItem,
     updateWishlistItem,
-    showWishlistSummary} from './crud-functions.mjs';
+    showWishlistSummary,
+    exportAsCSV} from './crud-functions.mjs';
 import fs from 'fs/promises';
 
 const welcomeMessage =`Welcome to the Wishlist Tracker
 Use the following commands to interact with your wishlist:
-See the items of your wishlist: -r
+See the items of your wishlist:\t -r
 Add a new item to your wishlist: -c --name <name> --price <price> --store <store>
-Update the item specified by id: -u --id <id> --name <name> --price <price> --store <store>
+Update the item specified by id: -u --name <name> --price <price> --store <store> --id <id>
 Remove the item specified by id: -d --id <id>
-Show wishlist summary: -s
-Export as CSV: -e`;
+Show wishlist summary:\t\t -s
+Export as CSV:\t\t\t -e`;
 
 const args = process.argv;
 
@@ -31,7 +31,7 @@ const getArgsValue = value => args[args.indexOf(value)+1];
 
 
 function commandLineInterpreter(){
-    if(process.argv.length==2){
+    if(process.argv.length<3){
         console.log(welcomeMessage);
     }
     else{
