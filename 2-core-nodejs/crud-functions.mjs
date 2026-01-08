@@ -129,6 +129,11 @@ Average price:\t\t${(total/itemCount).toFixed(2)}`);
 export function exportAsCSV(){
     fs.readFile(wishlistPath, { encoding: 'utf8' }).then(data=>{
         let wishlist = JSON.parse(data);
+        let csv = "Item,Name,Price,Store";
+        for(let item of wishlist.items){
+            csv+='\n' + item.id.toString() + "," + item.name + "," + item.price.toString() + ","+item.store;
+        }
+        fs.writeFile('wishlist.csv',csv);
         
     }).catch(err=>{
         console.log(err);

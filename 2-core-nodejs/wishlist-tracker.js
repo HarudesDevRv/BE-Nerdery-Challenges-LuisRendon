@@ -1,3 +1,4 @@
+import { exportAsCSV } from './crud-functions.mjs';
 import {readWishlist,
     createWishlistItem,
     removeWishlistItem,
@@ -11,7 +12,8 @@ See the items of your wishlist: -r
 Add a new item to your wishlist: -c --name <name> --price <price> --store <store>
 Update the item specified by id: -u --id <id> --name <name> --price <price> --store <store>
 Remove the item specified by id: -d --id <id>
-Show wishlist summary: -s`;
+Show wishlist summary: -s
+Export as CSV: -e`;
 
 const args = process.argv;
 
@@ -67,8 +69,11 @@ function commandLineInterpreter(){
                     console.log("Please enter a valid command");
                 }
                 break;
-            case"-s":
+            case "-s":
                 showWishlistSummary();
+                break;
+            case "-e":
+                exportAsCSV();
                 break;
             default:
                 console.log("Please enter a valid command");
