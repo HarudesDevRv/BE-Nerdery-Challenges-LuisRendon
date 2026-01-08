@@ -2,8 +2,10 @@ import fs from 'fs/promises';
 
 const wishlistPath = 'wishlist.json';
 
-function validateItem(item){
-    return Object.hasOwn(item,"name") && Object.hasOwn(item,"price") && Object.hasOwn(item,"store");
+function validateItem(item){//Validate the Item object structure
+    return Object.hasOwn(item,"name") && typeof(item.name) == "string" &&
+     Object.hasOwn(item,"price") && typeof(item.price) == "number" && 
+     Object.hasOwn(item,"store") && typeof(item.store) == "string";
 }
 
 export function createWishlistItem(item){
@@ -64,7 +66,6 @@ export function removeWishlistItem(id){
     }).catch(err=>{
 
     });
-    //console.log(wishlist);
 }
 
 export function updateWishlistItem(id, updatedItem){
@@ -94,7 +95,6 @@ export function updateWishlistItem(id, updatedItem){
     }).catch(err=>{
 
     });
-    //console.log(wishlist);
 }
 
 export function showWishlistSummary(){
