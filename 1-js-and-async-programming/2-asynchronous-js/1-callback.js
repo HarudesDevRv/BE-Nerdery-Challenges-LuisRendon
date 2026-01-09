@@ -21,19 +21,18 @@
 const makeRequest = require("./utils/make-requests");
 
 const makeRequestWithRetries = (attempts) => {
-  // TODO: Implement the function to make a request and retry if it fails
   function myCallback(err,data){
     if(err){
-      let message = err?.message;
+      let message = err?.message;//Search for the attempts inside the message
       let tries = parseInt(message.slice(26));
-      if(tries<attempts){
+      if(tries<attempts){//Validate there are remaining attempts and try again
           return makeRequest(tries+1,myCallback);
       }
-      else{
+      else{//Return an error if all attempts failed
         console.log("All attempts failed.");
         return Error("All attempts failed.");
       }
-    }else if(data){
+    }else if(data){//Return how many attempts where needed
       console.log(data);
       return data;
     }else{
@@ -41,7 +40,7 @@ const makeRequestWithRetries = (attempts) => {
       return Error("Something went wrong");
     }
   }
-
+  //Begin requesting
   makeRequest(1,myCallback);
 };
 
