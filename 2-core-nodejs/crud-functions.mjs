@@ -74,7 +74,6 @@ export async function removeWishlistItem(id){
         let items = wishlist.items;
         let itemIndex = items.findIndex(item=>item.id==id);
         if(itemIndex>=0){//If found, remove the item from the wishlist
-            console.log("item found at index",itemIndex);
             items.splice(itemIndex,1);
             await fs.writeFile(wishlistPath,JSON.stringify(wishlist)).then(()=>{//Save the updatet wishlist
                 console.log("wishlist updated");
