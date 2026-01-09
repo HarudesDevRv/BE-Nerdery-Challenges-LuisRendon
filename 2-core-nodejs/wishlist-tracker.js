@@ -5,8 +5,7 @@ import {readWishlist,
     showWishlistSummary,
     exportAsCSV} from './crud-functions.mjs';
 import fs from 'fs/promises';
-import readline from 'readline';
-import { start } from 'repl';
+import readline from 'readline/promises';
 
 //Message to show when no aditional value is passed
 const welcomeMessage =`Welcome to the Wishlist Tracker
@@ -99,7 +98,7 @@ function startCommandLoop(){
         output:process.stdout,
     });
     function readCommand(){
-        rl.question("Enter a command:\n",async(answer)=>{
+        rl.question("Enter a command:\n").then(async(answer)=>{
             switch(answer.toLowerCase()){
                 case "create":
                     let createItem = {
@@ -107,19 +106,23 @@ function startCommandLoop(){
                         price:0,
                         store:"",
                     };
-                    rl.question("Insert the item name:\n",(answer)=>{
+                    rl.question("Insert the item name:\n").then(answer=>{
                         createItem.name=answer;
-                    rl.question("Insert the item price:\n",(answer)=>{
+                        return rl.question("insert the item price:\n");
+                    }).then(answer=>{
                         createItem.price=parseFloat(answer);
                         if(!createItem.price){
-                            rl.write("Invalid number value, operation cancelled\n");
-                            readCommand();
-                        }
-                    rl.question("Insert the item store:\n",async (answer)=>{
+                            throw new Error("Invalid numeric value, operation cancelled\n");
+                        }else
+                            return rl.question("Inser the item store:\n");
+                    }).then(async answer=>{
                         createItem.store=answer;
                         await createWishlistItem(createItem);
                         readCommand();
-                    }); }); });
+                    }).catch(err=>{
+                        rl.write(err.message);
+                        readCommand();
+                    });
                     break;
                 case "read":
                     await readWishlist();
@@ -127,29 +130,37 @@ function startCommandLoop(){
                     break;
                 case "update":
                     let updateId=-1;
-                    let updateItem={};
-                    rl.question("Insert the item id:\n", async answer=>{
+                    let updateItem={
+                        name:"",
+                        price:0,
+                        store:"",
+                    };
+                    rl.question("Insert the item id:\n").then( async answer=>{
                         updateId=parseInt(answer);
                         if(!updateId){
-                            rl.write("Invalid number value, operation cancelled\n");
-                            readCommand();
+                            throw new Error("Invalid number value, operation cancelled\n");
                         }
-                    rl.question("Insert the item name:\n",(answer)=>{
-                        updateItem.name=answer;   
-                    rl.question("Insert the item price:\n",(answer)=>{
+                        return rl.question("Insert the item name:\n");
+                    }).then(answer=>{
+                        updateItem.name=answer;
+                        return rl.question("Insert the item price:\n");
+                    }).then(answer=>{
                         updateItem.price=parseFloat(answer);
                         if(!updateItem.price){
-                            rl.write("Invalid number value, operation cancelled\n");
-                            readCommand();
+                            throw new Error("Invalid number value, operation cancelled\n");
                         }
-                    rl.question("Insert the item store:\n",async (answer)=>{
+                        return rl.question("Insert the item store:\n");
+                    }).then(async answer=>{
                         updateItem.store=answer;
                         await updateWishlistItem(updateId,updateItem);
                         readCommand();
-                    }); }); }); });
+                    }).catch(err=>{
+                        rl.write(err.message);
+                        readCommand();
+                    });
                     break;
                 case "delete":
-                    rl.question("Insert the item id:\n",async answer=>{
+                    rl.question("Insert the item id:\n").then(async answer=>{
                         if(!parseInt(answer)){
                             rl.write("Invalid number value, operation cancelled\n");
                             readCommand();
@@ -165,6 +176,7 @@ function startCommandLoop(){
                     break;
                 case "export":
                     await exportAsCSV();
+                    readCommand();
                     break;
                 case "exit":
                     rl.write("Have a nice day!");
