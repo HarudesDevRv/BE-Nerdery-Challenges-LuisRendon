@@ -26,12 +26,12 @@ function validateItem(item){
  * @param {Item} item 
  * The item to be created on the wishlist
  */
-export function createWishlistItem(item){
+export async function createWishlistItem(item){
     if(!validateItem(item)){//Show an alert when the item data is not valid
         console.log("Please enter a valid item");
         return;
     }
-    fs.readFile(wishlistPath, { encoding: 'utf8' }).then(data=>{
+    await fs.readFile(wishlistPath, { encoding: 'utf8' }).then(data=>{
         let wishlist = JSON.parse(data);//Get and update the wishlist
         wishlist.items.push({id:wishlist.autoincrement,...item,});
         wishlist.autoincrement++;
@@ -48,8 +48,8 @@ export function createWishlistItem(item){
 /**
  * Reads the wishlist and prints it on the console
  */
-export function readWishlist(){
-    fs.readFile(wishlistPath, { encoding: 'utf8' }).then(data=>{
+export async function readWishlist(){
+    await fs.readFile(wishlistPath, { encoding: 'utf8' }).then(data=>{
         let wishlist = JSON.parse(data);//Get and show the wishlist
         if(wishlist.items.length){
             for(let item of wishlist.items){
@@ -68,8 +68,8 @@ export function readWishlist(){
  * @param {number} id 
  * The ID of the item to be removed
  */
-export function removeWishlistItem(id){
-    fs.readFile(wishlistPath,{encoding:'utf8'}).then(data=>{
+export async function removeWishlistItem(id){
+    await fs.readFile(wishlistPath,{encoding:'utf8'}).then(data=>{
         let wishlist = JSON.parse(data);//Get the wishlist and search for the item by ID
         let items = wishlist.items;
         let itemIndex = items.findIndex(item=>item.id==id);
@@ -98,12 +98,12 @@ export function removeWishlistItem(id){
  * The new item data
  * @returns 
  */
-export function updateWishlistItem(id, updatedItem){
+export async function updateWishlistItem(id, updatedItem){
     if(!validateItem(updatedItem)){//Show an alert when the item data is not valid
         console.log("Please enter a valid item");
         return;
     }
-    fs.readFile(wishlistPath,{encoding:'utf8'}).then(data=>{
+    await fs.readFile(wishlistPath,{encoding:'utf8'}).then(data=>{
         let wishlist = JSON.parse(data);//Get the wishlist and search for the item by ID
         let items = wishlist.items;
         let itemIndex = items.findIndex(item=>item.id==id);
@@ -128,8 +128,8 @@ export function updateWishlistItem(id, updatedItem){
 /**
  * Shows the summary of the wishlist: Most expensive item, total cost, number of items and average cost
  */
-export function showWishlistSummary(){
-    fs.readFile(wishlistPath, { encoding: 'utf8' }).then(data=>{
+export async function showWishlistSummary(){
+    await fs.readFile(wishlistPath, { encoding: 'utf8' }).then(data=>{
         let wishlist = JSON.parse(data);//Get the wishlist and set variables to keep necessary data
         let total = 0;
         let mostExpensiveItem = {};
@@ -160,8 +160,8 @@ Average price:\t\t${(total/itemCount).toFixed(2)}`);
 /**
  * Exports the wishlist as a CSV file and saves it locally
  */
-export function exportAsCSV(){
-    fs.readFile(wishlistPath, { encoding: 'utf8' }).then(data=>{
+export async function exportAsCSV(){
+    await fs.readFile(wishlistPath, { encoding: 'utf8' }).then(data=>{
         let wishlist = JSON.parse(data);//Get the wishlist and set the CSV header
         let csv = "Item,Name,Price,Store";
         for(let item of wishlist.items){//Add each item data to the csv
