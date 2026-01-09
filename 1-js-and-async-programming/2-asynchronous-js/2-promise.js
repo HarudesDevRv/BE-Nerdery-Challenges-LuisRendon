@@ -27,42 +27,29 @@ const { getLikedMovies, getUsers, getDislikedMovies } = require("./utils/mocked-
  * @returns {Promise<User[]>} A promise that resolves to an array of users who dislike more movies than they like.
  */
 const getUsersWithMoreDislikedMoviesThanLikedMovies = () => {
+  let users = []
+  let userLikedMovies = [];
+  let userDislikedMovies = [];
   //retrieve de users list
-  return new Promise((resolve)=>{
-    let users = []
-    let userLikedMovies = [];
-    let userDislikedMovies = [];
-    let usersList = getUsers().then(userList => users=userList);
-    //get the likeds movies for each user and store them in the arrays
-    let likedMovies = getLikedMovies().then(users=>{
-      for(let user of users){
-        let userLikes=0;
-        for(let likedMovie of user.movies){
-          userLikes++;
-        }
-        userLikedMovies.push(userLikes);
-      }
-    });
+  let usersList = getUsers().then(userList => users=userList);
+  //get the likeds movies for each user and store them in the arrays
+  let likedMovies = getLikedMovies().then(users=>userLikedMovies = users.map(user=>user.movies.length));
 
-    //get the dislikeds movies for each user and store them in the arrays
-    let disLikedMovies = getDislikedMovies().then(users=>{
-      for(let user of users){
-        let userDislikes = 0;
-        for(let disLikedMovie of user.movies){
-          userDislikes++;
-        }
-        userDislikedMovies.push(userDislikes);
-      }
-    });
+  //get the dislikeds movies for each user and store them in the arrays
+  let disLikedMovies = getDislikedMovies().then(users=>userDislikedMovies = users.map(user=>user.movies.length));
 
+  return new Promise((resolve, reject)=>{
     let usersWithMoreDislikedMovies=[];
-    //wait untill both arrays are filled and then compare the likes and dislikes for each user
+    //wait until both arrays are filled and then compare the likes and dislikes for each user
     Promise.all([likedMovies,disLikedMovies,usersList]).then(()=>{
       for(let i=0; i<users.length; i++){
         if(userDislikedMovies[i]>userLikedMovies[i])
           usersWithMoreDislikedMovies.push(users[i]);
       }
       resolve(usersWithMoreDislikedMovies);
+    }).catch(err=>{
+      console.log(err.message);
+      reject(err);
     });
   });
 };
