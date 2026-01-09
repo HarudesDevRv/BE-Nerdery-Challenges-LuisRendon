@@ -19,42 +19,24 @@ const { getLikedMovies, getUsers, getDislikedMovies, getUserSubscriptionByUserId
  * @returns {Promise<string>} Logs the subscription name as a string.
  */
 const getCommonDislikedSubscription = async () => {
-  //retrieve the users with more dislikes than likes similarly to the previous excercise
-  let users = []
-  await getUsers().then(userList => users=userList);
+  //Retrieve the users with more dislikes than likes similarly to the previous excercise
+  let users = await getUsers();
 
-  let userLikedMovies = Array(users.length).fill(0);
-  let userDislikedMovies = Array(users.length).fill(0);
-
-  await getLikedMovies().then(users=>{
-    for(let user of users){
-      let userId = user.userId;
-      for(let likedMovie of user.movies){
-        userLikedMovies[userId-1]++;
-      }
-    }
-  });
-
-  await getDislikedMovies().then(users=>{
-    for(let user of users){
-      let userId = user.userId;
-      for(let disLikedMovie of user.movies){
-        userDislikedMovies[userId-1]++;
-      }
-    }
-  });
-
+  let userLikedMovies = await getLikedMovies().then(users=>users.map(user=>user.movies.length));
+  
+  let userDislikedMovies = await getDislikedMovies().then(users=>users.map(user=>user.movies.length));
+  
   let usersWithMoreDislikedMovies=[];
  
   for(let i=0; i<users.length; i++){
     if(userDislikedMovies[i]>userLikedMovies[i])
       usersWithMoreDislikedMovies.push(users[i]);
   }
-  //set a map to store how many "haters" 
+  //Set a map to store how many "haters" 
   let hatersBySubscription = new Map();
 
   for(let user of usersWithMoreDislikedMovies){
-    //await for each user subscription data
+    //Await for each user subscription data
     //to keep the track for each kind of subscription without problems
     await getUserSubscriptionByUserId(user.id).then(
       subscription=>{
@@ -67,19 +49,16 @@ const getCommonDislikedSubscription = async () => {
       }
     );
   }
-  //compare the "haters" amount for each posible subscription plan 
-  //and keep track of the one with the most
-  let maxHaters = 0;
-  let maxHatersSubscription="";
+  //Get the highest "haters" amount and return its subscription
+  let maxHaters = Math.max(...hatersBySubscription.values()); 
 
   for(let subscription of hatersBySubscription){
-    if(subscription[1]>maxHaters){
-      maxHaters = subscription[1];
-      maxHatersSubscription = subscription[0];
+    if(subscription[1]===maxHaters){
+      return subscription[0];
     }
   }
 
-  return maxHatersSubscription;
+  return "None";
 };
 
 getCommonDislikedSubscription().then((subscription) => {
