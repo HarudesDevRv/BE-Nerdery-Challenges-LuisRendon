@@ -31,11 +31,11 @@ export async function createWishlistItem(item){
         console.log("Please enter a valid item");
         return;
     }
-    await fs.readFile(wishlistPath, { encoding: 'utf8' }).then(data=>{
+    await fs.readFile(wishlistPath, { encoding: 'utf8' }).then(async data=>{
         let wishlist = JSON.parse(data);//Get and update the wishlist
         wishlist.items.push({id:wishlist.autoincrement,...item,});
         wishlist.autoincrement++;
-        fs.writeFile(wishlistPath,JSON.stringify(wishlist)).then(()=>{//Save the updated wishlist
+        await fs.writeFile(wishlistPath,JSON.stringify(wishlist)).then(()=>{//Save the updated wishlist
             console.log("Wishlist updated");
         }).catch(err=>{
             console.log(err);
@@ -69,14 +69,14 @@ export async function readWishlist(){
  * The ID of the item to be removed
  */
 export async function removeWishlistItem(id){
-    await fs.readFile(wishlistPath,{encoding:'utf8'}).then(data=>{
+    await fs.readFile(wishlistPath,{encoding:'utf8'}).then(async data=>{
         let wishlist = JSON.parse(data);//Get the wishlist and search for the item by ID
         let items = wishlist.items;
         let itemIndex = items.findIndex(item=>item.id==id);
         if(itemIndex>=0){//If found, remove the item from the wishlist
             console.log("item found at index",itemIndex);
             items.splice(itemIndex,1);
-            fs.writeFile(wishlistPath,JSON.stringify(wishlist)).then(()=>{//Save the updatet wishlist
+            await fs.writeFile(wishlistPath,JSON.stringify(wishlist)).then(()=>{//Save the updatet wishlist
                 console.log("wishlist updated");
             }).catch(err=>{
                 console.log(err);
@@ -103,16 +103,14 @@ export async function updateWishlistItem(id, updatedItem){
         console.log("Please enter a valid item");
         return;
     }
-    await fs.readFile(wishlistPath,{encoding:'utf8'}).then(data=>{
+    await fs.readFile(wishlistPath,{encoding:'utf8'}).then(async data=>{
         let wishlist = JSON.parse(data);//Get the wishlist and search for the item by ID
         let items = wishlist.items;
         let itemIndex = items.findIndex(item=>item.id==id);
-        console.log(itemIndex);
         if(itemIndex>=0){//If found, update the item
-            console.log("item found at index",itemIndex);
             items[itemIndex]={id:id,...updatedItem};
-            fs.writeFile(wishlistPath,JSON.stringify(wishlist)).then(()=>{//Save the updated wishlist
-                console.log("wishlist updated");
+            await fs.writeFile(wishlistPath,JSON.stringify(wishlist)).then(()=>{//Save the updated wishlist
+                console.log("Wishlist updated");
             }).catch(err=>{
                 console.log(err);
             });
@@ -161,13 +159,13 @@ Average price:\t\t${(total/itemCount).toFixed(2)}`);
  * Exports the wishlist as a CSV file and saves it locally
  */
 export async function exportAsCSV(){
-    await fs.readFile(wishlistPath, { encoding: 'utf8' }).then(data=>{
+    await fs.readFile(wishlistPath, { encoding: 'utf8' }).then(async data=>{
         let wishlist = JSON.parse(data);//Get the wishlist and set the CSV header
         let csv = "Item,Name,Price,Store";
         for(let item of wishlist.items){//Add each item data to the csv
             csv+='\n' + item.id.toString() + "," + item.name + "," + item.price.toString() + ","+item.store;
         }
-        fs.writeFile('wishlist.csv',csv).then(()=>{//Locally save the CSV on the code folder
+        await fs.writeFile('wishlist.csv',csv).then(()=>{//Locally save the CSV on the code folder
             console.log("Wishlist successfully exported as CSV");
         }).catch(err=>{
             console.log(err);
