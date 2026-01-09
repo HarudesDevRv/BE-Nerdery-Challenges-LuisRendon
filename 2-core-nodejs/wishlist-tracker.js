@@ -15,9 +15,7 @@ Add a new item to your wishlist: -c --name <name> --price <price> --store <store
 Update the item specified by id: -u --name <name> --price <price> --store <store> --id <id>
 Remove the item specified by id: -d --id <id>
 Show wishlist summary:\t\t -s
-Export as CSV:\t\t\t -e
-Enter the following commands non case sensitive to directly interact with your wishlist:
-Create\tRead\tUpdate\tDelete\tSummary\tExport\tExit`;
+Export as CSV:\t\t\t -e`;
 
 const args = process.argv;
 
@@ -98,7 +96,7 @@ function startCommandLoop(){
         output:process.stdout,
     });
     function readCommand(){
-        rl.question("Enter a command:\n").then(async(answer)=>{
+        rl.question("Enter a command:\nCreate\tRead\tUpdate\tDelete\tSummary\tExport\tExit\n").then(async(answer)=>{
             switch(answer.toLowerCase()){
                 case "create":
                     let createItem = {
@@ -106,7 +104,7 @@ function startCommandLoop(){
                         price:0,
                         store:"",
                     };
-                    rl.question("Insert the item name:\n").then(answer=>{
+                    rl.question("Enter the item name:\n").then(answer=>{
                         createItem.name=answer;
                         return rl.question("insert the item price:\n");
                     }).then(answer=>{
@@ -135,15 +133,15 @@ function startCommandLoop(){
                         price:0,
                         store:"",
                     };
-                    rl.question("Insert the item id:\n").then( async answer=>{
+                    rl.question("Enter the item id:\n").then( async answer=>{
                         updateId=parseInt(answer);
                         if(!updateId){
                             throw new Error("Invalid number value, operation cancelled\n");
                         }
-                        return rl.question("Insert the item name:\n");
+                        return rl.question("Enter the item name:\n");
                     }).then(answer=>{
                         updateItem.name=answer;
-                        return rl.question("Insert the item price:\n");
+                        return rl.question("Enter the item price:\n");
                     }).then(answer=>{
                         updateItem.price=parseFloat(answer);
                         if(!updateItem.price){
@@ -160,7 +158,7 @@ function startCommandLoop(){
                     });
                     break;
                 case "delete":
-                    rl.question("Insert the item id:\n").then(async answer=>{
+                    rl.question("Enter the item id:\n").then(async answer=>{
                         if(!parseInt(answer)){
                             rl.write("Invalid number value, operation cancelled\n");
                             readCommand();
