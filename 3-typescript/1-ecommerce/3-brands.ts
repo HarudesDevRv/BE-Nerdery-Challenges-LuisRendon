@@ -14,10 +14,15 @@
 
 import { Brand, Product } from "./1-types";
 
+interface CountryInfo {
+  country: string;
+  products: number;
+}
+
 export async function getCountriesWithBrandsAndProductCount(
   brands: Brand[],
   products: Product[],
-): Promise<{ country: string; products: number }[]> {
+): Promise<CountryInfo[]> {
   let filteredBrands = brands.filter((brand) => brand.headquarters != "");
   let filteredProducts = products.filter(
     (product) =>

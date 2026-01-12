@@ -18,12 +18,17 @@ interface DepartmentWithProducts extends Department {
   productsNames: string[];
 }
 
+interface DepartmentsProducts {
+  name: string;
+  id: number;
+  products: number;
+  productsNames: string[];
+}
+
 export async function getDepartmentsWithProductCount(
   departments: Department[],
   products: Product[],
-): Promise<
-  { id: number; name: string; products: number; productNames: string[] }[]
-> {
+): Promise<DepartmentsProducts[]> {
   let departmentsWithProducts: DepartmentWithProducts[] = [];
   departmentsWithProducts = departments.map((department) => {
     let departmentProducts: string[] = products
@@ -39,6 +44,6 @@ export async function getDepartmentsWithProductCount(
     name: department.name,
     id: department.id,
     products: department.products,
-    productNames: department.productsNames,
+    productsNames: department.productsNames,
   }));
 }

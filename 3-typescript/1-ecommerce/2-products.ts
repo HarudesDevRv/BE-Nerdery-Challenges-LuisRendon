@@ -21,14 +21,18 @@
 
 import { Brand, Product } from "./1-types";
 
-export async function analyzeProductPrices(products: Product[]): Promise<{
+interface productPriceAnalysis {
   totalPrice: number;
   averagePrice: number;
   mostExpensiveProduct: Product | null;
   cheapestProduct: Product | null;
   onSaleCount: number;
   averageDiscount: number;
-}> {
+}
+
+export async function analyzeProductPrices(
+  products: Product[],
+): Promise<productPriceAnalysis> {
   let totalPrice: number = 0;
   let totalDiscount: number = 0;
   let mostExpensiveProduct: Product | null = null;
@@ -72,15 +76,31 @@ export async function analyzeProductPrices(products: Product[]): Promise<{
   - The brandInfo field should include the rest of the brand metadata (name, logo, description, etc.).
  */
 
+interface catalogProduct extends Product {
+  brandInfo: {
+    name: string;
+    logo: string;
+    description: string;
+    foundedYear: number;
+    website: string;
+    headquarters: string;
+    signature: string;
+    socialMedia: {
+      instagram: string;
+      twitter: string;
+      facebook: string;
+    };
+  };
+}
 export async function buildProductCatalog(
   products: Product[],
   brands: Brand[],
-): Promise<Object[]> {
+): Promise<catalogProduct[]> {
   let activeProducts: Product[] = products.filter(
     (product) => product.isActive,
   );
   let activeBrands: Brand[] = brands.filter((brand) => brand.isActive);
-  let productCatalog: Object[] = [];
+  let productCatalog: catalogProduct[] = [];
   for (let product of activeProducts) {
     let brandIndex = activeBrands.findIndex(
       (brand) => brand.id == product.brandId,
