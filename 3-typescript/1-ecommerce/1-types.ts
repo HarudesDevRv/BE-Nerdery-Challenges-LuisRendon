@@ -54,7 +54,7 @@ interface Product {
   lomadeeCampaignCode: string;
   score: number;
   price: number;
-  salePrice: number;
+  salePrice: number | null;
   onSale: boolean;
   colors: string[];
   sizes: number[];
