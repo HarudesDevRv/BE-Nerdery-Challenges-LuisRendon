@@ -19,7 +19,44 @@
  *
  **/
 
-async function analyzeProductPrices(products: any[]): Promise<any> {}
+import { Brand, Product } from "./1-types";
+
+export async function analyzeProductPrices(products: Product[]): Promise<{
+  totalPrice: number;
+  averagePrice: number;
+  mostExpensiveProduct: Product | null;
+  cheapestProduct: Product | null;
+  onSaleCount: number;
+  averageDiscount: number;
+}> {
+  let totalPrice: number = 0;
+  let totalDiscount: number = 0;
+  let mostExpensiveProduct: Product | null = null;
+  let cheapestProduct: Product | null = null;
+  for (let product of products) {
+    totalPrice += product.price;
+    totalDiscount += product.salePrice
+      ? product.price / product.salePrice - 1
+      : 0;
+    if (
+      mostExpensiveProduct == null ||
+      product.price > mostExpensiveProduct.price
+    ) {
+      mostExpensiveProduct = product;
+    }
+    if (cheapestProduct == null || product.price < cheapestProduct.price) {
+      cheapestProduct = product;
+    }
+  }
+  return {
+    totalPrice: totalPrice,
+    averagePrice: parseFloat((totalPrice / products.length).toFixed(2)),
+    mostExpensiveProduct: mostExpensiveProduct,
+    cheapestProduct: cheapestProduct,
+    onSaleCount: products.length,
+    averageDiscount: parseFloat((totalDiscount / products.length).toFixed(2)),
+  };
+}
 
 /**
  *  Challenge 2: Build a Product Catalog with Brand Metadata
@@ -35,11 +72,28 @@ async function analyzeProductPrices(products: any[]): Promise<any> {}
   - The brandInfo field should include the rest of the brand metadata (name, logo, description, etc.).
  */
 
-async function buildProductCatalog(
-  products: unknown[],
-  brands: unknown[],
-): Promise<unknown[]> {
-  return [];
+export async function buildProductCatalog(
+  products: Product[],
+  brands: Brand[],
+): Promise<Object[]> {
+  let activeProducts: Product[] = products.filter(
+    (product) => product.isActive,
+  );
+  let activeBrands: Brand[] = brands.filter((brand) => brand.isActive);
+  let productCatalog: Object[] = [];
+  for (let product of activeProducts) {
+    let brandIndex = activeBrands.findIndex(
+      (brand) => brand.id == product.brandId,
+    );
+    if (brandIndex >= 0) {
+      let { id, isActive, ...brandData } = activeBrands[brandIndex];
+      productCatalog.push({
+        ...product,
+        brandInfo: brandData,
+      });
+    }
+  }
+  return productCatalog;
 }
 
 /**
@@ -56,10 +110,14 @@ async function buildProductCatalog(
  * - Use proper TypeScript typing for parameters and return values.
  */
 
-async function filterProductsWithOneImage(
-  products: unknown[],
-): Promise<unknown[]> {
+export async function filterProductsWithOneImage(
+  products: Product[],
+): Promise<Product[]> {
   // Implement the function logic here
 
-  return [];
+  return products.flatMap((product) =>
+    product.images.length > 0
+      ? [{ ...product, images: [product.images[0]] }]
+      : [],
+  );
 }
