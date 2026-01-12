@@ -17,16 +17,104 @@
  */
 
 // PRODUCTS JSON
+interface Image {
+  id: number;
+  url: string;
+  alt: string;
+  isMain: boolean;
+}
 
+interface Specifications {
+  material: string;
+  weight: string;
+  cushioning: string;
+  closure: string;
+}
+
+interface Product {
+  id: number;
+  name: string;
+  departmentId: number;
+  categoryId: number;
+  brandId: number;
+  linkId: string;
+  refId: string;
+  isVisible: boolean;
+  description: string;
+  descriptionShort: string;
+  releaseDate: string;
+  keywords: string;
+  title: string;
+  isActive: boolean;
+  taxCode: string;
+  metaTagDescription: string;
+  supplierId: number;
+  showWithoutStock: boolean;
+  adWordsRemarketingCode: string;
+  lomadeeCampaignCode: string;
+  score: number;
+  price: number;
+  salePrice: number;
+  onSale: boolean;
+  colors: string[];
+  sizes: number[];
+  tags: string[];
+  images: Image[];
+  specifications: Specifications;
+}
 //! Add necessary type definitions for the products json file
 
 // CATEGORIES JSON
-
+interface Category {
+  id: number;
+  name: string;
+  departmentId: number;
+  description: string;
+  keywords: string;
+  isActive: boolean;
+  iconUrl: string;
+  bannerUrl: string;
+  displayOrder: number;
+  metaDescription: string;
+  filters: {
+    name: string;
+    values: string[];
+  }[];
+}
 //! Add necessary type definitions for the brands json file
 
 // BRANDS JSON
-
+interface Brand {
+  id: string | number;
+  name: string;
+  logo: string;
+  description: string;
+  foundedYear: number;
+  website: string;
+  isActive: boolean;
+  headquarters: string;
+  signature: string;
+  socialMedia: {
+    instagram: string;
+    twitter: string;
+    facebook: string;
+  };
+}
 //! Add necessary type definitions for the brands json file
 
 // DEPARTMENTS JSON
+interface Department {
+  id: number;
+  name: string;
+  description: string;
+  isActive: boolean;
+  displayOrder: number;
+  iconUrl: string;
+  bannerUrl: string;
+  metaDescription: string;
+  featuredCategories: number[];
+  slug: string;
+}
 //! Add necessary type definitions for the departments json file
+
+export { Product, Department, Brand, Category };
