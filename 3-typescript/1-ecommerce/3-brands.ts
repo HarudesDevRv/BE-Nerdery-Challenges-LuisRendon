@@ -14,10 +14,7 @@
 
 import { Brand, Product } from "./1-types";
 
-interface CountryInfo {
-  country: string;
-  products: number;
-}
+type CountryInfo = [country: string, products: number];
 
 export async function getCountriesWithBrandsAndProductCount(
   brands: Brand[],
@@ -28,7 +25,6 @@ export async function getCountriesWithBrandsAndProductCount(
     (product) =>
       filteredBrands.findIndex((brand) => brand.id == product.brandId) >= 0,
   );
-  console.log(filteredProducts.length);
   let countries = new Map<string, number>();
   for (let product of filteredProducts) {
     let brand = filteredBrands.find((brand) => brand.id == product.brandId);
@@ -42,8 +38,5 @@ export async function getCountriesWithBrandsAndProductCount(
     }
   }
 
-  return [...countries].map((country) => ({
-    country: country[0],
-    products: country[1],
-  }));
+  return [...countries].map((country) => [country[0], country[1]]);
 }
