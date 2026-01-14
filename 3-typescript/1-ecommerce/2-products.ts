@@ -21,22 +21,24 @@
 
 import { Brand, Product } from "./1-types";
 
-interface productPriceAnalysis {
+type ProductPriceAnalysis = {
   totalPrice: number;
   averagePrice: number;
   mostExpensiveProduct: Product | null;
   cheapestProduct: Product | null;
   onSaleCount: number;
   averageDiscount: number;
-}
+};
 
 export async function analyzeProductPrices(
   products: Product[],
-): Promise<productPriceAnalysis> {
+): Promise<ProductPriceAnalysis> {
   let totalPrice: number = 0;
   let totalDiscount: number = 0;
-  let mostExpensiveProduct: Product | null = null;
-  let cheapestProduct: Product | null = null;
+  let mostExpensiveProduct: Product | null =
+    products.length > 0 ? products[0] : null;
+  let cheapestProduct: Product | null =
+    products.length > 0 ? products[0] : null;
   for (let product of products) {
     totalPrice += product.price;
     totalDiscount += product.salePrice
@@ -52,14 +54,24 @@ export async function analyzeProductPrices(
       cheapestProduct = product;
     }
   }
-  return {
-    totalPrice: totalPrice,
-    averagePrice: parseFloat((totalPrice / products.length).toFixed(2)),
-    mostExpensiveProduct: mostExpensiveProduct,
-    cheapestProduct: cheapestProduct,
+
+  let averagePrice: number = parseFloat(
+    (totalPrice / products.length).toFixed(2),
+  );
+
+  let averageDiscount: number = (totalDiscount / products.length) * 100;
+  totalDiscount = parseFloat(totalDiscount.toFixed(2));
+
+  let productPriceAnalysis: ProductPriceAnalysis = {
+    totalPrice,
+    averageDiscount,
+    mostExpensiveProduct,
+    cheapestProduct,
     onSaleCount: products.length,
-    averageDiscount: parseFloat((totalDiscount / products.length).toFixed(2)),
+    averagePrice,
   };
+
+  return productPriceAnalysis;
 }
 
 /**
@@ -76,40 +88,31 @@ export async function analyzeProductPrices(
   - The brandInfo field should include the rest of the brand metadata (name, logo, description, etc.).
  */
 
-interface catalogProduct extends Product {
-  brandInfo: {
-    name: string;
-    logo: string;
-    description: string;
-    foundedYear: number;
-    website: string;
-    headquarters: string;
-    signature: string;
-    socialMedia: {
-      instagram: string;
-      twitter: string;
-      facebook: string;
-    };
-  };
-}
+/**
+ *
+ */
+type CatalogProduct = Product & {
+  brandInfo: Omit<Brand, "id" | "isActive">;
+};
+
 export async function buildProductCatalog(
   products: Product[],
   brands: Brand[],
-): Promise<catalogProduct[]> {
+): Promise<CatalogProduct[]> {
   let activeProducts: Product[] = products.filter(
     (product) => product.isActive,
   );
   let activeBrands: Brand[] = brands.filter((brand) => brand.isActive);
-  let productCatalog: catalogProduct[] = [];
+  let productCatalog: CatalogProduct[] = [];
   for (let product of activeProducts) {
     let brandIndex = activeBrands.findIndex(
       (brand) => brand.id == product.brandId,
     );
     if (brandIndex >= 0) {
-      let { id, isActive, ...brandData } = activeBrands[brandIndex];
+      let { id, isActive, ...brandInfo } = activeBrands[brandIndex];
       productCatalog.push({
         ...product,
-        brandInfo: brandData,
+        brandInfo,
       });
     }
   }
