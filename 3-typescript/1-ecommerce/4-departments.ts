@@ -13,37 +13,30 @@
 
 import { Department, Product } from "./1-types";
 
-interface DepartmentWithProducts extends Department {
-  products: number;
-  productsNames: string[];
-}
-
-interface DepartmentsProducts {
+type DepartmentWithProducts = {
   name: string;
   id: number;
   products: number;
   productsNames: string[];
-}
+};
 
 export async function getDepartmentsWithProductCount(
   departments: Department[],
   products: Product[],
-): Promise<DepartmentsProducts[]> {
+): Promise<DepartmentWithProducts[]> {
   let departmentsWithProducts: DepartmentWithProducts[] = [];
   departmentsWithProducts = departments.map((department) => {
+    let departmentName: string = department.name;
+    let departmentId: number = department.id;
     let departmentProducts: string[] = products
       .filter((product) => product.departmentId == department.id)
       .map((product) => product.name);
     return {
-      ...department,
+      name: departmentName,
+      id: departmentId,
       products: departmentProducts.length,
       productsNames: departmentProducts,
     };
   });
-  return departmentsWithProducts.map((department) => ({
-    name: department.name,
-    id: department.id,
-    products: department.products,
-    productsNames: department.productsNames,
-  }));
+  return departmentsWithProducts;
 }
