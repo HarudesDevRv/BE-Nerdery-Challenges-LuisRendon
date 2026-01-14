@@ -50,8 +50,8 @@ interface Product {
   metaTagDescription: string;
   supplierId: number;
   showWithoutStock: boolean;
-  adWordsRemarketingCode: string;
-  lomadeeCampaignCode: string;
+  adWordsRemarketingCode?: string;
+  lomadeeCampaignCode?: string;
   score: number;
   price: number;
   salePrice: number | null;
