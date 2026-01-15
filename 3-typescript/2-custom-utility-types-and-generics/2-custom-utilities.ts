@@ -21,8 +21,20 @@
  */
 
 // Add here your solution
+type OmitByType<T, U> = {
+  [P in keyof T as T[P] extends U ? never : P]: T[P];
+};
 
 // Add here your example
+
+interface OmitBoolean {
+  name: string;
+  count: number;
+  isReadonly: boolean;
+  isEnable: boolean;
+}
+
+type OmittedBooleans = OmitByType<OmitBoolean, boolean>;
 
 /**
  * Exercise #2: Implement the utility type `If<C, T, F>`, which evaluates a condition `C`
@@ -40,8 +52,10 @@
  */
 
 // Add here your solution
-
+type If<C extends true | false, T, F> = C extends true ? T : F;
 // Add here your example
+type A = If<true, "a", "b">; // expected to be 'a'
+type B = If<false, "a", "b">; // expected to be 'b'
 
 /**
  * Exercise #3: Recreate the built-in `Readonly<T>` utility type without using it.
@@ -66,9 +80,22 @@
  */
 
 // Add here your solution
-
+type MyReadonly<T> = {
+  readonly [P in keyof T]: T[P];
+};
 // Add here your example
+interface Todo {
+  title: string;
+  description: string;
+}
 
+const todo: MyReadonly<Todo> = {
+  title: "Hey",
+  description: "foobar",
+};
+
+//todo.title = "Hello"; // Error: cannot reassign a readonly property
+//todo.description = "barFoo";
 /**
  * Exercise #4: Recreate the built-in `ReturnType<T>` utility type without using it.
  *
@@ -88,9 +115,22 @@
  */
 
 // Add here your solution
-
+type MyReturnType<T extends (...args: any[]) => any> = T extends (
+  ...args: any[]
+) => infer U
+  ? U
+  : T;
 // Add here your example
 
+const fn = (v: boolean) => {
+  if (v) {
+    return 1;
+  } else {
+    return 2;
+  }
+};
+
+type a = MyReturnType<typeof fn>; // expected to be "1 | 2"
 /**
  * Exercise #5: Extract the type inside a wrapped type like `Promise`.
  *
@@ -106,8 +146,11 @@
  */
 
 // Add here your solution
-
+type MyAwaited<T extends Promise<any>> = T extends Promise<infer U> ? U : T;
 // Add here your example
+type ExampleType = Promise<string>;
+
+type Result = MyAwaited<ExampleType>;
 
 /**
  * Exercise 6: Create a utility type `RequiredByKeys<T, K>` that makes specific keys of `T` required.
@@ -131,5 +174,17 @@
  */
 
 // Add here your solution
-
+type RequiredByKeys<T, K extends keyof T = any> = {
+  [P in keyof T as P extends K ? P : never]-?: T[P];
+} & {
+  [P in keyof T as P extends K ? never : P]: T[P];
+};
 // Add here your example
+interface User {
+  name?: string;
+  age?: number;
+  address?: string;
+}
+
+type UserRequiredName = RequiredByKeys<User, "name" | "age">;
+// expected to be: { name: string; age?: number; address?: string }
