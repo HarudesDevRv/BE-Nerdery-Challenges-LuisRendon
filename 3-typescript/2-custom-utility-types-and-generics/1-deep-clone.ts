@@ -12,3 +12,51 @@
  */
 
 //? implement the function  here
+type Primitive = number | string | boolean | undefined | null;
+
+function deepCopy<T>(variable: T): T {
+  switch (typeof variable) {
+    case "undefined":
+    case "boolean":
+    case "number":
+    case "string":
+      return variable;
+    case "object":
+      if (Array.isArray(variable)) {
+        let returnArray = [];
+        for (let value of variable) {
+          returnArray.push(deepCopy(value));
+        }
+      } else {
+        let returnObject = {};
+
+        for (let property of Object.entries(variable!)) {
+        }
+      }
+  }
+  return variable;
+}
+
+function deepClone<T>(object: T): T {
+  return deepCopy(object);
+}
+
+interface Test {
+  name: string;
+  id: number;
+  price: number;
+  keys: string[];
+  items: object[];
+  undef: undefined;
+}
+
+let testVariable: Test = {
+  name: "SomeString",
+  id: 1232,
+  price: 123.231,
+  keys: ["first", "second", "third", "fourth"],
+  items: [{}, {}],
+  undef: undefined,
+};
+
+let secondVariable = deepClone(testVariable);
