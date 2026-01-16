@@ -33,13 +33,16 @@ type ProductPriceAnalysis = {
 export async function analyzeProductPrices(
   products: Product[],
 ): Promise<ProductPriceAnalysis> {
+  //Set the initial values to support an empty list of products
   let totalPrice: number = 0;
   let totalDiscount: number = 0;
   let mostExpensiveProduct: Product | null =
     products.length > 0 ? products[0] : null;
   let cheapestProduct: Product | null =
     products.length > 0 ? products[0] : null;
+
   for (let product of products) {
+    //Calculate the necessary data from the products
     totalPrice += product.price;
     totalDiscount += product.salePrice
       ? product.price / product.salePrice - 1
@@ -55,10 +58,10 @@ export async function analyzeProductPrices(
     }
   }
 
+  //Calculate the average values and return them
   let averagePrice: number = parseFloat(
     (totalPrice / products.length).toFixed(2),
   );
-
   let averageDiscount: number = (totalDiscount / products.length) * 100;
   totalDiscount = parseFloat(totalDiscount.toFixed(2));
 
@@ -99,12 +102,15 @@ export async function buildProductCatalog(
   products: Product[],
   brands: Brand[],
 ): Promise<CatalogProduct[]> {
+  //Filter the inactive brands and products
   let activeProducts: Product[] = products.filter(
     (product) => product.isActive,
   );
   let activeBrands: Brand[] = brands.filter((brand) => brand.isActive);
   let productCatalog: CatalogProduct[] = [];
+
   for (let product of activeProducts) {
+    //Add the new enriched products necessary data
     let brandIndex = activeBrands.findIndex(
       (brand) => brand.id == product.brandId,
     );
@@ -136,8 +142,7 @@ export async function buildProductCatalog(
 export async function filterProductsWithOneImage(
   products: Product[],
 ): Promise<Product[]> {
-  // Implement the function logic here
-
+  // Simultaneously filter the products without images and map the others to only have one image
   return products.flatMap((product) =>
     product.images.length > 0
       ? [{ ...product, images: [product.images[0]] }]
