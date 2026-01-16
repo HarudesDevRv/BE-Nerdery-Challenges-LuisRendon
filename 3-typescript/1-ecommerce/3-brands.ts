@@ -14,29 +14,34 @@
 
 import { Brand, Product } from "./1-types";
 
-type CountryInfo = [country: string, products: number];
+//Alternative for working with limited possible values
+type Countries = "USA" | "Japan" | "Germany";
+type LimitedCountriesInfo = Record<Countries, number>;
+
+type CountryInfo = Record<string, number>;
 
 export async function getCountriesWithBrandsAndProductCount(
   brands: Brand[],
   products: Product[],
-): Promise<CountryInfo[]> {
+): Promise<CountryInfo> {
+  let countries: CountryInfo = {};
+  //Filter the products whose brand isn't active
   let filteredBrands = brands.filter((brand) => brand.headquarters != "");
   let filteredProducts = products.filter(
     (product) =>
       filteredBrands.findIndex((brand) => brand.id == product.brandId) >= 0,
   );
-  let countries = new Map<string, number>();
   for (let product of filteredProducts) {
+    //Dynamically fill the CountryInfo object
     let brand = filteredBrands.find((brand) => brand.id == product.brandId);
     let country = brand!.headquarters.slice(
       brand!.headquarters.indexOf(",") + 2,
     );
-    if (countries.has(country)) {
-      countries.set(country, countries.get(country)! + 1);
+    if (countries[country]) {
+      countries[country]++;
     } else {
-      countries.set(country, 1);
+      countries[country] = 1;
     }
   }
-
-  return [...countries].map((country) => [country[0], country[1]]);
+  return countries;
 }
