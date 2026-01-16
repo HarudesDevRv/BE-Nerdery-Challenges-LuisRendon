@@ -174,10 +174,16 @@ type Result = MyAwaited<ExampleType>;
  */
 
 // Add here your solution
-type RequiredByKeys<T, K extends keyof T = any> = {
+type RequireSome<T, K extends keyof T = any> = {
+  //Split the type into required and optional
   [P in keyof T as P extends K ? P : never]-?: T[P];
 } & {
   [P in keyof T as P extends K ? never : P]: T[P];
+};
+//Combine both types into one
+type RequiredByKeys<T, K extends keyof T = any> = {
+  //Combine both into one type
+  [P in keyof RequireSome<T, K>]: RequireSome<T, K>[P];
 };
 // Add here your example
 interface User {
