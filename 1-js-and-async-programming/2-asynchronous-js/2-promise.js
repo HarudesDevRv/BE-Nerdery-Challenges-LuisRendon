@@ -34,14 +34,12 @@ const getUsersWithMoreDislikedMoviesThanLikedMovies = () => {
   //Retrieve de users, liked movies and disliked movies lists
   return Promise.all([getLikedMovies(), getDislikedMovies(), getUsers()])
     .then((results) => {
-      let usersWithMoreDislikedMovies = [];
       let [userLikedMovies, userDislikedMovies, users] = results;
-      for (let i = 0; i < users.length; i++) {
-        if (
-          userDislikedMovies[i].movies.length > userLikedMovies[i].movies.length
-        )
-          usersWithMoreDislikedMovies.push(users[i]);
-      }
+      let usersWithMoreDislikedMovies = users.filter(
+        (user, i) =>
+          userDislikedMovies[i].movies.length >
+          userLikedMovies[i].movies.length,
+      );
       return usersWithMoreDislikedMovies;
     })
     .catch((err) => {
