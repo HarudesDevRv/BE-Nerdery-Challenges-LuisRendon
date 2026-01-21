@@ -11,6 +11,10 @@
 
 -- your query here
 
+SELECT c.name category, COUNT(c.category_id) film_count 
+FROM film f INNER JOIN film_category fc USING(film_id)
+INNER JOIN category c USING(category_id)
+GROUP BY c.category_id;
 
  /*
     Challenge 2.
@@ -24,6 +28,11 @@
  -- your query here
 
 
+SELECT c.first_name, c.last_name, SUM(p.amount) total_spent
+FROM customer c INNER JOIN payment p USING(customer_id)
+GROUP BY c.customer_id
+ORDER BY total_spent DESC
+LIMIT 5;
 
 
 /*
@@ -38,6 +47,11 @@
 
 -- your query here
 
+SELECT f.title
+FROM rental r INNER JOIN inventory i USING(inventory_id)
+INNER JOIN film f USING(film_id)
+GROUP BY f.title
+HAVING CURRENT_DATE - MAX(r.rental_date) < '10 years';
 
 /*
     Challenge 4.
@@ -51,6 +65,10 @@
 -- your query here
 
 
+SELECT f.title
+FROM rental r LEFT JOIN inventory i USING(inventory_id)
+RIGHT JOIN film f USING(film_id)
+WHERE rental_id IS NULL;
 
 
 /*
@@ -65,6 +83,24 @@
 
 -- your query here
 
+WITH rental_by_film (rental_count) AS(
+    SELECT COUNT(film_id) rental_count
+    FROM rental
+    INNER JOIN inventory USING(inventory_id)
+    INNER JOIN film USING(film_id)
+    GROUP BY film_id
+)
+SELECT f.title, COUNT(f.title) rental_count
+FROM rental r
+INNER JOIN inventory i USING(inventory_id)
+INNER JOIN film f USING(film_id)
+GROUP BY f.title
+HAVING COUNT(f.title) > (
+    SELECT AVG(rf.rental_count)
+    FROM rental_by_film as rf
+);
+
+
 /*
     Challenge 6.
     Write a SQL query that calculates rental activity for each customer.
@@ -76,6 +112,23 @@
 */
 
 -- your query here
+WITH customer_first_and_last_rental as (
+    SELECT customer.first_name, 
+    customer.last_name,
+    MIN(rental.rental_date) first_rental,
+    MAX(rental.rental_date) last_rental
+    FROM customer
+    INNER JOIN rental USING(customer_id)
+    GROUP BY (first_name, last_name)
+)
+SELECT 
+first_name, 
+last_name,
+first_rental::DATE,
+last_rental::DATE,
+EXTRACT(DAYS FROM last_rental - first_rental) rental_span_days
+FROM customer_first_and_last_rental
+ORDER BY rental_span_days DESC;
 
 /*
     Challenge 7.
@@ -87,6 +140,30 @@
 
 -- your query here
 
+CREATE OR REPLACE VIEW category_rentals 
+AS
+SELECT c.name category_name, c.category_id, r.rental_id, r.customer_id
+FROM rental r INNER JOIN inventory i USING (inventory_id)
+INNER JOIN film f USING (film_id)
+INNER JOIN film_category fc USING (film_id)
+INNER JOIN category c USING (category_id)
+;
+
+WITH customer_categories_count AS(
+    select COUNT(category_id) categories,
+    cus.first_name, 
+    cus.last_name
+    FROM customer cus
+    INNER JOIN category_rentals USING (customer_id)
+    GROUP BY (cus.customer_id, category_id)
+)
+select first_name, last_name
+FROM customer_categories_count
+GROUP BY (first_name, last_name)
+HAVING COUNT(categories) != (
+    SELECT COUNT(*) 
+    FROM category
+);
 
 /*
     Challenge 8.
@@ -111,6 +188,33 @@
 
 -- your work here
 
+SELECT cr.category_name, SUM(p.amount) revenue
+FROM payment p INNER JOIN category_rentals cr USING(rental_id)
+GROUP BY cr.category_name
+ORDER BY SUM(p.amount) DESC;
 
+DROP MATERIALIZED VIEW revenue_by_category;
 
+CREATE MATERIALIZED VIEW revenue_by_category
+AS
+SELECT cr.category_name, SUM(p.amount) revenue
+FROM payment p INNER JOIN category_rentals cr USING(rental_id)
+GROUP BY cr.category_name
+ORDER BY SUM(p.amount) DESC;
 
+SELECT * FROM revenue_by_category;
+
+SELECT * FROM revenue_by_category LIMIT 3;
+
+REFRESH MATERIALIZED VIEW revenue_by_category;
+
+/*
+When would you prefer a materialized view over a regular view?
+I would prefer materialized views on situations when the computing of the query takes so much time,
+is used often and it doesn't need fully accurate information each time it's called. Eg. Statistics based
+on monthly/yearly sales.
+
+How often should it be refreshed?
+It depends on how much time the data can be outdated before affecting the results, and how often the query
+can be executed without interfering on the application performance.
+*/
