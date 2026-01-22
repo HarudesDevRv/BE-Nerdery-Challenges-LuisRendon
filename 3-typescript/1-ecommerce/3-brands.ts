@@ -26,21 +26,32 @@ export async function getCountriesWithBrandsAndProductCount(
 ): Promise<CountryInfo> {
   let countries: CountryInfo = {};
   //Filter the products whose brand isn't active
-  let filteredBrands = brands.filter((brand) => brand.headquarters != "");
-  let filteredProducts = products.filter(
-    (product) =>
-      filteredBrands.findIndex((brand) => brand.id == product.brandId) >= 0,
-  );
-  for (let product of filteredProducts) {
+  let filteredBrandsIndexes: Map<number, number> = new Map<number, number>();
+  brands.forEach((brand, index) => {
+    if (brand.isActive && brand.headquarters != "")
+      filteredBrandsIndexes.set(
+        typeof brand.id == "string" ? parseInt(brand.id) : brand.id,
+        index,
+      );
+  });
+  for (let product of products) {
     //Dynamically fill the CountryInfo object
-    let brand = filteredBrands.find((brand) => brand.id == product.brandId);
-    let country = brand!.headquarters.slice(
-      brand!.headquarters.indexOf(",") + 2,
-    );
-    if (countries[country]) {
-      countries[country]++;
-    } else {
-      countries[country] = 1;
+    if (product.isActive) {
+      let brandIndex: number | undefined = filteredBrandsIndexes.get(
+        product.brandId,
+      );
+      console.log(brandIndex);
+      if (brandIndex != undefined && brandIndex >= 0) {
+        let brand: Brand = brands[brandIndex];
+        let country: string = brand.headquarters.slice(
+          brand.headquarters.indexOf(",") + 2,
+        );
+        if (countries[country]) {
+          countries[country]++;
+        } else {
+          countries[country] = 1;
+        }
+      }
     }
   }
   return countries;

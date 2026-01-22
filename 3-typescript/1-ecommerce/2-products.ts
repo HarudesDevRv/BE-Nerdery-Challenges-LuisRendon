@@ -41,12 +41,17 @@ export async function analyzeProductPrices(
   let cheapestProduct: Product | null =
     products.length > 0 ? products[0] : null;
 
+  let onSaleCount: number = 0;
+
   for (let product of products) {
     //Calculate the necessary data from the products
     totalPrice += product.price;
-    totalDiscount += product.salePrice
-      ? product.price / product.salePrice - 1
-      : 0;
+    if (product.onSale) {
+      onSaleCount++;
+      totalDiscount += product.salePrice
+        ? product.price / product.salePrice - 1
+        : 0;
+    }
     if (
       mostExpensiveProduct == null ||
       product.price > mostExpensiveProduct.price
@@ -59,18 +64,22 @@ export async function analyzeProductPrices(
   }
 
   //Calculate the average values and return them
-  let averagePrice: number = parseFloat(
-    (totalPrice / products.length).toFixed(2),
-  );
-  let averageDiscount: number = (totalDiscount / products.length) * 100;
-  totalDiscount = parseFloat(totalDiscount.toFixed(2));
+  let averagePrice: number =
+    products.length > 0
+      ? parseFloat((totalPrice / products.length).toFixed(2))
+      : 0;
+  averagePrice = parseFloat(averagePrice.toFixed(2));
+
+  let averageDiscount: number =
+    products.length > 0 ? (totalDiscount / products.length) * 100 : 0;
+  averageDiscount = parseFloat(averageDiscount.toFixed(2));
 
   let productPriceAnalysis: ProductPriceAnalysis = {
-    totalPrice,
-    averageDiscount,
     mostExpensiveProduct,
     cheapestProduct,
-    onSaleCount: products.length,
+    totalPrice,
+    averageDiscount,
+    onSaleCount,
     averagePrice,
   };
 
@@ -102,24 +111,29 @@ export async function buildProductCatalog(
   products: Product[],
   brands: Brand[],
 ): Promise<CatalogProduct[]> {
-  //Filter the inactive brands and products
-  let activeProducts: Product[] = products.filter(
-    (product) => product.isActive,
-  );
-  let activeBrands: Brand[] = brands.filter((brand) => brand.isActive);
+  let activeBrandsIndexes: Map<number, number> = new Map();
+  brands.forEach((brand, index) => {
+    if (brand.isActive)
+      activeBrandsIndexes.set(
+        typeof brand.id == "string" ? parseInt(brand.id) : brand.id,
+        index,
+      );
+  });
   let productCatalog: CatalogProduct[] = [];
 
-  for (let product of activeProducts) {
+  for (let product of products) {
     //Add the new enriched products necessary data
-    let brandIndex = activeBrands.findIndex(
-      (brand) => brand.id == product.brandId,
-    );
-    if (brandIndex >= 0) {
-      let { id, isActive, ...brandInfo } = activeBrands[brandIndex];
-      productCatalog.push({
-        ...product,
-        brandInfo,
-      });
+    if (product.isActive) {
+      let brandIndex: number | undefined = activeBrandsIndexes.get(
+        product.brandId,
+      );
+      if (brandIndex) {
+        let { id, isActive, ...brandInfo } = brands[brandIndex];
+        productCatalog.push({
+          ...product,
+          brandInfo,
+        });
+      }
     }
   }
   return productCatalog;

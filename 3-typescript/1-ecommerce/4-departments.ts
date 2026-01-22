@@ -25,17 +25,32 @@ export async function getDepartmentsWithProductCount(
   products: Product[],
 ): Promise<DepartmentWithProducts[]> {
   //For each department, filter the products which aren't available there and count them
+  let departmentsProducts: Map<number, string[]> = new Map<number, string[]>();
+  for (let product of products) {
+    if (departmentsProducts.has(product.departmentId)) {
+      departmentsProducts.get(product.departmentId)?.push(product.name);
+    } else {
+      departmentsProducts.set(product.departmentId, [product.name]);
+    }
+  }
+
   let departmentsWithProducts: DepartmentWithProducts[] = departments.map(
     (department) => {
       let name: string = department.name;
       let id: number = department.id;
-      let productsNames: string[] = products
-        .filter((product) => product.departmentId == department.id)
-        .map((product) => product.name);
+
+      let departmentProducts: string[] | undefined = departmentsProducts.get(
+        department.id,
+      );
+      let productsNames: string[] = departmentProducts
+        ? departmentProducts
+        : [];
+      let products: number = departmentProducts ? departmentProducts.length : 0;
+
       let DepartmentWithProducts = {
         name,
         id,
-        products: productsNames.length,
+        products,
         productsNames,
       };
       return DepartmentWithProducts;
