@@ -11,7 +11,7 @@
 
 -- your query here
 
-SELECT c.name category, COUNT(c.category_id) film_count 
+SELECT c.name category, COUNT(f.film_id) film_count 
 FROM film f INNER JOIN film_category fc USING(film_id)
 INNER JOIN category c USING(category_id)
 GROUP BY c.category_id;
@@ -63,13 +63,10 @@ HAVING CURRENT_DATE - MAX(r.rental_date) < '10 years';
 
 
 -- your query here
-
-
-SELECT f.title
-FROM rental r LEFT JOIN inventory i USING(inventory_id)
-RIGHT JOIN film f USING(film_id)
+SELECT f.title, i.inventory_id
+FROM rental r RIGHT JOIN inventory i USING(inventory_id)
+INNER JOIN film f USING(film_id)
 WHERE rental_id IS NULL;
-
 
 /*
     Challenge 5.
@@ -82,24 +79,19 @@ WHERE rental_id IS NULL;
 
 
 -- your query here
-
-WITH rental_by_film (rental_count) AS(
-    SELECT COUNT(film_id) rental_count
+WITH rental_by_film (rental_count, title) AS(
+    SELECT COUNT(*) rental_count, f.title
     FROM rental
-    INNER JOIN inventory USING(inventory_id)
-    INNER JOIN film USING(film_id)
-    GROUP BY film_id
+    INNER JOIN inventory i USING(inventory_id)
+    INNER JOIN film f USING(film_id)
+    GROUP BY f.film_id
+), avg_rental AS(
+    SELECT AVG(rental_count) AS avg_count
+    FROM rental_by_film
 )
-SELECT f.title, COUNT(f.title) rental_count
-FROM rental r
-INNER JOIN inventory i USING(inventory_id)
-INNER JOIN film f USING(film_id)
-GROUP BY f.title
-HAVING COUNT(f.title) > (
-    SELECT AVG(rf.rental_count)
-    FROM rental_by_film as rf
-);
-
+SELECT title, rental_count
+FROM rental_by_film CROSS JOIN avg_rental
+where rental_count > avg_count;
 
 /*
     Challenge 6.
@@ -140,30 +132,23 @@ ORDER BY rental_span_days DESC;
 
 -- your query here
 
-CREATE OR REPLACE VIEW category_rentals 
-AS
-SELECT c.name category_name, c.category_id, r.rental_id, r.customer_id
-FROM rental r INNER JOIN inventory i USING (inventory_id)
-INNER JOIN film f USING (film_id)
-INNER JOIN film_category fc USING (film_id)
-INNER JOIN category c USING (category_id)
-;
-
 WITH customer_categories_count AS(
-    select COUNT(category_id) categories,
-    cus.first_name, 
+    select COUNT(DISTINCT c.category_id) categories,
+    cus.first_name,
     cus.last_name
     FROM customer cus
-    INNER JOIN category_rentals USING (customer_id)
-    GROUP BY (cus.customer_id, category_id)
+    INNER JOIN rental r INNER JOIN inventory i USING (inventory_id)
+    INNER JOIN film f USING (film_id)
+    INNER JOIN film_category fc USING (film_id)
+    INNER JOIN category c USING (category_id) USING (customer_id)
+    GROUP BY cus.customer_id
+), categories_count AS(
+    SELECT COUNT(*) total_categories
+    FROM category
 )
 select first_name, last_name
-FROM customer_categories_count
-GROUP BY (first_name, last_name)
-HAVING COUNT(categories) != (
-    SELECT COUNT(*) 
-    FROM category
-);
+FROM customer_categories_count CROSS JOIN categories_count
+where categories != total_categories;
 
 /*
     Challenge 8.
@@ -188,15 +173,31 @@ HAVING COUNT(categories) != (
 
 -- your work here
 
+
+--FIRST QUERY
+WITH category_rentals AS(
+    SELECT c.name category_name, c.category_id, r.rental_id, r.customer_id
+    FROM rental r INNER JOIN inventory i USING (inventory_id)
+    INNER JOIN film f USING (film_id)
+    INNER JOIN film_category fc USING (film_id)
+    INNER JOIN category c USING (category_id)
+)
 SELECT cr.category_name, SUM(p.amount) revenue
 FROM payment p INNER JOIN category_rentals cr USING(rental_id)
 GROUP BY cr.category_name
 ORDER BY SUM(p.amount) DESC;
 
-DROP MATERIALIZED VIEW revenue_by_category;
 
+--MATERIALIZED VIEW
 CREATE MATERIALIZED VIEW revenue_by_category
 AS
+WITH category_rentals AS(
+    SELECT c.name category_name, c.category_id, r.rental_id, r.customer_id
+    FROM rental r INNER JOIN inventory i USING (inventory_id)
+    INNER JOIN film f USING (film_id)
+    INNER JOIN film_category fc USING (film_id)
+    INNER JOIN category c USING (category_id)
+)
 SELECT cr.category_name, SUM(p.amount) revenue
 FROM payment p INNER JOIN category_rentals cr USING(rental_id)
 GROUP BY cr.category_name
