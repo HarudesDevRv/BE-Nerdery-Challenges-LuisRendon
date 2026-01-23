@@ -42,44 +42,44 @@
 
 -- your solution here
 
-CREATE OR REPLACE PROCEDURE banking.transfer_funds(
+CREATE OR REPLACE FUNCTION banking.transfer_funds(
     from_id INT,
     to_id INT,
     amount NUMERIC
 )
+RETURNS VOID
 language plpgsql
 AS $$
 DECLARE
-    sender_status TEXT;
-    receiver_status TEXT;
-    sender_balance NUMERIC(12,2);
-    receiver_balance NUMERIC(12,2);
+    sender_data RECORD;
+    receiver_data RECORD;
     reference_uuid TEXT;
 BEGIN
-    IF NOT EXISTS (select 1 from banking.accounts where account_id = from_id) THEN
-        RAISE 'The sender account doesn''t exist';
-    ELSIF NOT EXISTS (select 1 from banking.accounts where account_id = to_id) THEN
-        RAISE 'The receiver account does doesn''t exist';
-    ELSIF from_id = to_id THEN
-        RAISE 'The sender and receiver accounts should be different';
+
+    IF amount <= 0 THEN RAISE EXCEPTION 'The transfer amount should be greater than 0'; 
+    END IF;
+    
+    IF from_id = to_id  THEN
+        RAISE EXCEPTION 'The sender and receiver accounts should be different';
     END IF;
 
-    IF amount <= 0 THEN RAISE 'The transfer amount should be greater than 0'; 
+    SELECT * INTO sender_data FROM banking.accounts WHERE account_id = from_id FOR UPDATE;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'The sender account doesn''t exist';
     END IF;
 
-    sender_status = (SELECT status FROM banking.accounts WHERE account_id = from_id);
-    receiver_status = (SELECT status FROM banking.accounts WHERE account_id = to_id);
-
-    IF sender_status != 'active' THEN
-        RAISE 'The sender account isn''t active';
-    ELSIF receiver_status != 'active' THEN
-        RAISE 'The receiver account isn'' active';
+    SELECT * INTO receiver_data FROM banking.accounts WHERE account_id = to_id FOR UPDATE;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'The receiver account doesn''t exist';
     END IF;
 
-    sender_balance = (SELECT balance FROM banking.accounts WHERE account_id = from_id);
-    receiver_balance = (SELECT balance FROM banking.accounts WHERE account_id = to_id);
+    IF sender_data.status != 'active' THEN
+        RAISE EXCEPTION 'The sender account isn''t active';
+    ELSIF receiver_data.status != 'active' THEN
+        RAISE EXCEPTION 'The receiver account isn'' active';
+    END IF;
 
-    IF sender_balance < amount THEN RAISE 'Insufficient account balance';
+    IF sender_data.balance < amount THEN RAISE EXCEPTION 'Insufficient account balance';
     END IF;
 
     UPDATE banking.accounts
@@ -91,13 +91,12 @@ BEGIN
     WHERE account_id = to_id;
 
     reference_uuid = gen_random_uuid();
-
+    
     INSERT INTO banking.transactions (account_id, amount, transaction_type, reference, transaction_date)
     VALUES 
         (from_id, amount, 'withdrawal', reference_uuid, CURRENT_TIMESTAMP),
         (to_id, amount, 'deposit', reference_uuid, CURRENT_TIMESTAMP);
-    
-    COMMIT;
+        
 END;$$;
 
-CALL banking.transfer_funds(2, 1, 10);
+select banking.transfer_funds(1, 2, -15);
