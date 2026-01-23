@@ -12,10 +12,47 @@
  * - The return should be a type that allow us to define the country name as a key and the amount of products as a value.
  */
 
-async function getCountriesWithBrandsAndProductCount(
-  brands: unknown[],
-  products: unknown[],
-): Promise<unknown> {
-  // Implement the function logic here
-  return;
+import { Brand, Product } from "./1-types";
+
+//Alternative for working with limited possible values
+type Countries = "USA" | "Japan" | "Germany";
+type LimitedCountriesInfo = Record<Countries, number>;
+
+type CountryInfo = Record<string, number>;
+
+export async function getCountriesWithBrandsAndProductCount(
+  brands: Brand[],
+  products: Product[],
+): Promise<CountryInfo> {
+  let countries: CountryInfo = {};
+  //Filter the products whose brand isn't active
+  let filteredBrandsIndexes: Map<number, number> = new Map<number, number>();
+  brands.forEach((brand, index) => {
+    if (brand.isActive && brand.headquarters != "")
+      filteredBrandsIndexes.set(
+        typeof brand.id == "string" ? parseInt(brand.id) : brand.id,
+        index,
+      );
+  });
+  for (let product of products) {
+    //Dynamically fill the CountryInfo object
+    if (product.isActive) {
+      let brandIndex: number | undefined = filteredBrandsIndexes.get(
+        product.brandId,
+      );
+      console.log(brandIndex);
+      if (brandIndex != undefined && brandIndex >= 0) {
+        let brand: Brand = brands[brandIndex];
+        let country: string = brand.headquarters.slice(
+          brand.headquarters.indexOf(",") + 2,
+        );
+        if (countries[country]) {
+          countries[country]++;
+        } else {
+          countries[country] = 1;
+        }
+      }
+    }
+  }
+  return countries;
 }

@@ -19,7 +19,72 @@
  *
  **/
 
-async function analyzeProductPrices(products: any[]): Promise<any> {}
+import { Brand, Product } from "./1-types";
+
+type ProductPriceAnalysis = {
+  totalPrice: number;
+  averagePrice: number;
+  mostExpensiveProduct: Product | null;
+  cheapestProduct: Product | null;
+  onSaleCount: number;
+  averageDiscount: number;
+};
+
+export async function analyzeProductPrices(
+  products: Product[],
+): Promise<ProductPriceAnalysis> {
+  //Set the initial values to support an empty list of products
+  let totalPrice: number = 0;
+  let totalDiscount: number = 0;
+  let mostExpensiveProduct: Product | null =
+    products.length > 0 ? products[0] : null;
+  let cheapestProduct: Product | null =
+    products.length > 0 ? products[0] : null;
+
+  let onSaleCount: number = 0;
+
+  for (let product of products) {
+    //Calculate the necessary data from the products
+    totalPrice += product.price;
+    if (product.onSale) {
+      onSaleCount++;
+      totalDiscount += product.salePrice
+        ? product.price / product.salePrice - 1
+        : 0;
+    }
+    if (
+      mostExpensiveProduct == null ||
+      product.price > mostExpensiveProduct.price
+    ) {
+      mostExpensiveProduct = product;
+    }
+    if (cheapestProduct == null || product.price < cheapestProduct.price) {
+      cheapestProduct = product;
+    }
+  }
+
+  //Calculate the average values and return them
+  let averagePrice: number =
+    products.length > 0
+      ? parseFloat((totalPrice / products.length).toFixed(2))
+      : 0;
+  averagePrice = parseFloat(averagePrice.toFixed(2));
+
+  let averageDiscount: number =
+    products.length > 0 ? (totalDiscount / products.length) * 100 : 0;
+  averageDiscount = parseFloat(averageDiscount.toFixed(2));
+
+  let productPriceAnalysis: ProductPriceAnalysis = {
+    mostExpensiveProduct,
+    cheapestProduct,
+    totalPrice,
+    averageDiscount,
+    onSaleCount,
+    averagePrice,
+  };
+
+  return productPriceAnalysis;
+}
 
 /**
  *  Challenge 2: Build a Product Catalog with Brand Metadata
@@ -35,11 +100,43 @@ async function analyzeProductPrices(products: any[]): Promise<any> {}
   - The brandInfo field should include the rest of the brand metadata (name, logo, description, etc.).
  */
 
-async function buildProductCatalog(
-  products: unknown[],
-  brands: unknown[],
-): Promise<unknown[]> {
-  return [];
+/**
+ *
+ */
+type CatalogProduct = Product & {
+  brandInfo: Omit<Brand, "id" | "isActive">;
+};
+
+export async function buildProductCatalog(
+  products: Product[],
+  brands: Brand[],
+): Promise<CatalogProduct[]> {
+  let activeBrandsIndexes: Map<number, number> = new Map();
+  brands.forEach((brand, index) => {
+    if (brand.isActive)
+      activeBrandsIndexes.set(
+        typeof brand.id == "string" ? parseInt(brand.id) : brand.id,
+        index,
+      );
+  });
+  let productCatalog: CatalogProduct[] = [];
+
+  for (let product of products) {
+    //Add the new enriched products necessary data
+    if (product.isActive) {
+      let brandIndex: number | undefined = activeBrandsIndexes.get(
+        product.brandId,
+      );
+      if (brandIndex) {
+        let { id, isActive, ...brandInfo } = brands[brandIndex];
+        productCatalog.push({
+          ...product,
+          brandInfo,
+        });
+      }
+    }
+  }
+  return productCatalog;
 }
 
 /**
@@ -56,10 +153,13 @@ async function buildProductCatalog(
  * - Use proper TypeScript typing for parameters and return values.
  */
 
-async function filterProductsWithOneImage(
-  products: unknown[],
-): Promise<unknown[]> {
-  // Implement the function logic here
-
-  return [];
+export async function filterProductsWithOneImage(
+  products: Product[],
+): Promise<Product[]> {
+  // Simultaneously filter the products without images and map the others to only have one image
+  return products.flatMap((product) =>
+    product.images.length > 0
+      ? [{ ...product, images: [product.images[0]] }]
+      : [],
+  );
 }
