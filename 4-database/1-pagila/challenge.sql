@@ -11,6 +11,10 @@
 
 -- your query here
 
+SELECT c.name category, COUNT(f.film_id) film_count 
+FROM film f INNER JOIN film_category fc USING(film_id)
+INNER JOIN category c USING(category_id)
+GROUP BY c.category_id;
 
  /*
     Challenge 2.
@@ -24,6 +28,11 @@
  -- your query here
 
 
+SELECT c.first_name, c.last_name, SUM(p.amount) total_spent
+FROM customer c INNER JOIN payment p USING(customer_id)
+GROUP BY c.customer_id
+ORDER BY total_spent DESC
+LIMIT 5;
 
 
 /*
@@ -38,6 +47,11 @@
 
 -- your query here
 
+SELECT f.title
+FROM rental r INNER JOIN inventory i USING(inventory_id)
+INNER JOIN film f USING(film_id)
+GROUP BY f.title
+HAVING CURRENT_DATE - MAX(r.rental_date) < '10 years';
 
 /*
     Challenge 4.
@@ -49,9 +63,10 @@
 
 
 -- your query here
-
-
-
+SELECT f.title, i.inventory_id
+FROM inventory i LEFT JOIN rental r USING(inventory_id)
+INNER JOIN film f USING(film_id)
+WHERE rental_id IS NULL;
 
 /*
     Challenge 5.
@@ -64,6 +79,18 @@
 
 
 -- your query here
+WITH rental_by_film (rental_count, title) AS(
+    SELECT COUNT(*) rental_count, f.title
+    FROM rental INNER JOIN inventory i USING(inventory_id)
+    INNER JOIN film f USING(film_id)
+    GROUP BY f.film_id
+), avg_rental AS(
+    SELECT AVG(rental_count) AS avg_count
+    FROM rental_by_film
+)
+SELECT title, rental_count
+FROM rental_by_film CROSS JOIN avg_rental
+where rental_count > avg_count;
 
 /*
     Challenge 6.
@@ -76,6 +103,22 @@
 */
 
 -- your query here
+WITH customer_first_and_last_rental as (
+    SELECT customer.first_name, 
+    customer.last_name,
+    MIN(rental.rental_date) first_rental,
+    MAX(rental.rental_date) last_rental
+    FROM customer INNER JOIN rental USING(customer_id)
+    GROUP BY (customer_id)
+)
+SELECT 
+first_name, 
+last_name,
+first_rental::DATE,
+last_rental::DATE,
+EXTRACT(DAYS FROM last_rental - first_rental) rental_span_days
+FROM customer_first_and_last_rental
+ORDER BY rental_span_days DESC;
 
 /*
     Challenge 7.
@@ -87,6 +130,23 @@
 
 -- your query here
 
+WITH customer_categories_count AS(
+    select COUNT(DISTINCT c.category_id) categories,
+    cus.first_name,
+    cus.last_name
+    FROM customer cus INNER JOIN rental r USING (customer_id) 
+    INNER JOIN inventory i USING (inventory_id)
+    INNER JOIN film f USING (film_id)
+    INNER JOIN film_category fc USING (film_id)
+    INNER JOIN category c USING (category_id) 
+    GROUP BY cus.customer_id
+), categories_count AS(
+    SELECT COUNT(*) total_categories
+    FROM category
+)
+select first_name, last_name
+FROM customer_categories_count CROSS JOIN categories_count
+where categories != total_categories;
 
 /*
     Challenge 8.
@@ -112,5 +172,48 @@
 -- your work here
 
 
+--FIRST QUERY
+WITH category_rentals AS(
+    SELECT c.name category_name, c.category_id, r.rental_id, r.customer_id
+    FROM rental r INNER JOIN inventory i USING (inventory_id)
+    INNER JOIN film f USING (film_id)
+    INNER JOIN film_category fc USING (film_id)
+    INNER JOIN category c USING (category_id)
+)
+SELECT cr.category_name, SUM(p.amount) revenue
+FROM payment p INNER JOIN category_rentals cr USING(rental_id)
+GROUP BY cr.category_name
+ORDER BY SUM(p.amount) DESC;
 
 
+--MATERIALIZED VIEW
+CREATE MATERIALIZED VIEW revenue_by_category
+AS
+WITH category_rentals AS(
+    SELECT c.name category_name, c.category_id, r.rental_id, r.customer_id
+    FROM rental r INNER JOIN inventory i USING (inventory_id)
+    INNER JOIN film f USING (film_id)
+    INNER JOIN film_category fc USING (film_id)
+    INNER JOIN category c USING (category_id)
+)
+SELECT cr.category_name, SUM(p.amount) revenue
+FROM payment p INNER JOIN category_rentals cr USING(rental_id)
+GROUP BY cr.category_name
+ORDER BY SUM(p.amount) DESC;
+
+SELECT * FROM revenue_by_category;
+
+SELECT * FROM revenue_by_category LIMIT 3;
+
+REFRESH MATERIALIZED VIEW revenue_by_category;
+
+/*
+When would you prefer a materialized view over a regular view?
+I would prefer materialized views on situations when the computing of the query takes so much time,
+is used often and it doesn't need fully accurate information each time it's called. Eg. Statistics based
+on monthly/yearly sales.
+
+How often should it be refreshed?
+It depends on how much time the data can be outdated before affecting the results, and how often the query
+can be executed without interfering on the application performance.
+*/
