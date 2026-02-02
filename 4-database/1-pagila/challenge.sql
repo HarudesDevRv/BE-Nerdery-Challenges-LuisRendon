@@ -64,7 +64,7 @@ HAVING CURRENT_DATE - MAX(r.rental_date) < '10 years';
 
 -- your query here
 SELECT f.title, i.inventory_id
-FROM rental r RIGHT JOIN inventory i USING(inventory_id)
+FROM inventory i LEFT JOIN rental r USING(inventory_id)
 INNER JOIN film f USING(film_id)
 WHERE rental_id IS NULL;
 
@@ -81,8 +81,7 @@ WHERE rental_id IS NULL;
 -- your query here
 WITH rental_by_film (rental_count, title) AS(
     SELECT COUNT(*) rental_count, f.title
-    FROM rental
-    INNER JOIN inventory i USING(inventory_id)
+    FROM rental INNER JOIN inventory i USING(inventory_id)
     INNER JOIN film f USING(film_id)
     GROUP BY f.film_id
 ), avg_rental AS(
@@ -109,9 +108,8 @@ WITH customer_first_and_last_rental as (
     customer.last_name,
     MIN(rental.rental_date) first_rental,
     MAX(rental.rental_date) last_rental
-    FROM customer
-    INNER JOIN rental USING(customer_id)
-    GROUP BY (first_name, last_name)
+    FROM customer INNER JOIN rental USING(customer_id)
+    GROUP BY (customer_id)
 )
 SELECT 
 first_name, 
@@ -136,11 +134,11 @@ WITH customer_categories_count AS(
     select COUNT(DISTINCT c.category_id) categories,
     cus.first_name,
     cus.last_name
-    FROM customer cus
-    INNER JOIN rental r INNER JOIN inventory i USING (inventory_id)
+    FROM customer cus INNER JOIN rental r USING (customer_id) 
+    INNER JOIN inventory i USING (inventory_id)
     INNER JOIN film f USING (film_id)
     INNER JOIN film_category fc USING (film_id)
-    INNER JOIN category c USING (category_id) USING (customer_id)
+    INNER JOIN category c USING (category_id) 
     GROUP BY cus.customer_id
 ), categories_count AS(
     SELECT COUNT(*) total_categories
